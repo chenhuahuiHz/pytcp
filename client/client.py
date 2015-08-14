@@ -77,7 +77,6 @@ class TCPClient(threading.Thread):
 		self.isconnected = res
 		if res:
 			self.start()
-			self.senddata("hello server")
 		else:
 			self.reconnect()
 
@@ -138,23 +137,27 @@ class TheApp():
 
 	def onconn(self, bresult):
 		print "onconn"
+		if bresult:
+			self.client.senddata("hello server")
 		
 
 	def onrecv(self):
-		data = self.client.recvqueue[0]
-		protoc = [submsg for submsg in data.split("##") if len(submsg) > 0]
-		if len(protoc) != 3:
-			print "parse data error: %s" % data
-		else:
-			if int(protoc[0]) == 0 or int(protoc[0]) == self.client.clientid:
-				print "data for me:%s" % str(protoc)
-				if int(protoc[1]) == 1:
-					self.changebg(protoc[2])
-				elif int(protoc[1]) == 2:
-					self.playaudio(protoc[2])
-				elif int(protoc[1]) == 3:
-					self.showch(protoc[2])
-		self.client.recvqueue.remove(data)
+		while len(self.client.recvqueue) > 0:
+			print "loop"
+			data = self.client.recvqueue[0]
+			protoc = [submsg for submsg in data.split("##") if len(submsg) > 0]
+			if len(protoc) != 3:
+				print "parse data error: %s" % data
+			else:
+				if int(protoc[0]) == 0 or int(protoc[0]) == self.client.clientid:
+					print "data for me:%s" % str(protoc)
+					if int(protoc[1]) == 1:
+						self.changebg(protoc[2])
+					elif int(protoc[1]) == 2:
+						self.playaudio(protoc[2])
+					elif int(protoc[1]) == 3:
+						self.showch(protoc[2])
+			self.client.recvqueue.remove(data)
 
 	def zouni(self):
 		while True:
